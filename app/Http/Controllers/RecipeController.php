@@ -58,4 +58,33 @@ class RecipeController extends Controller
                 'price' => $price,
             ]);
      }
+     public function preview(Request $request)
+    {
+        $items = $request->input('items');
+        $ingredientIds = array_map(function ($item) {
+            return $item['id'];
+        }, $items);
+
+        $quantityForId = function($id) use($items) {
+            for($i = 0; $i < count($items); $i++) {
+                if($items[$i]['id'] == $id) {
+                    return $items[$i]['quantity'];
+                }
+            }
+        };
+
+        $ingredients = Ingredient::whereIn('id', $ingredientIds)
+            ->get()
+            ->map(function($ingredient) use($quantityForId) {
+                $ingredient->quantity = $quantityForId($ingredient->id);
+                return $ingredient;
+            });
+
+        $size = $request->input('size');
+
+        return response()
+            ->json([
+                'price' => $this->calculatePrice($ingredients, $size),
+            ]);
+    }
 }
