@@ -3,6 +3,9 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\IngredientController;
 
+use App\Http\Controllers\RecipeController;
+
+
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -18,4 +21,6 @@ Route::get('/', function () {
     return view('welcome');
 });
 
+
 Route::get('/ingredients', [IngredientController::class,'index']);
+Route::post('/recipes', 'RecipeController@save');
