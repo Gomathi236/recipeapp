@@ -40,4 +40,22 @@ class RecipeController extends Controller
                 'price' => $price,
             ]);
     }
+    public function fetch($id) {
+        $recipe = Recipe::find($id);
+        $ingredients = $recipe->ingredients
+            ->map(function($ingredient) {
+                $ingredient->quantity = $ingredient->pivot->quantity;
+                return $ingredient;
+            });
+            
+        $price = $this->calculatePrice($ingredients, $recipe->size);
+        
+        return response()
+            ->json([
+                'id' => $recipe->id,
+                'name' => 'Recipe '.$recipe->name.' ('.$recipe->size.')',
+                'url' => '/api/recipe/'.$recipe->id,
+                'price' => $price,
+            ]);
+     }
 }
