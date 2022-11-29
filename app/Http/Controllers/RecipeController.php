@@ -1,20 +1,22 @@
 <?php
-
 namespace App\Http\Controllers;
 
+use App\Models\Ingredient;
+use App\Models\IngredientRecipe;
+use App\Models\Recipe;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 
 class RecipeController extends Controller
 {
-    //
     public function save(Request $request)
     {
         $recipe = new Recipe;
-        $recipe->name = $request->input('name');
-        $recipe->size = $request->input('size');
+        $this->setField($recipe, 'name', $request, 'Unnamed');
+        $this->setField($recipe, 'size', $request, 'small');
         $recipe->save();
 
-        $items = array_map(function ($item) use ($recipe) {
+        $items = array_map(function($item) use($recipe) {
             return [
                 'recipe_id' => $recipe->id,
                 'ingredient_id' => $item['id'],
@@ -24,22 +26,9 @@ class RecipeController extends Controller
 
         IngredientRecipe::insert($items);
 
-        $ingredients = Recipe::find($recipe->id)
-            ->ingredients->map(function ($ingredient) {
-                $ingredient->quantity = $ingredient->pivot->quantity;
-                return $ingredient;
-            });
-
-        $price = $this->calculatePrice($ingredients, $recipe->size);
-
-        return response()
-            ->json([
-                'id' => $recipe->id,
-                'name' => 'Recipe ' . $recipe->name . ' (' . $recipe->size . ')',
-                'url' => '/api/recipe/' . $recipe->id,
-                'price' => $price,
-            ]);
+        return $this->fetch($recipe->id);
     }
+
     public function fetch($id) {
         $recipe = Recipe::find($id);
         $ingredients = $recipe->ingredients
@@ -47,18 +36,19 @@ class RecipeController extends Controller
                 $ingredient->quantity = $ingredient->pivot->quantity;
                 return $ingredient;
             });
-            
+
         $price = $this->calculatePrice($ingredients, $recipe->size);
-        
+
         return response()
             ->json([
                 'id' => $recipe->id,
-                'name' => 'Recipe '.$recipe->name.' ('.$recipe->size.')',
+                'name' => 'Recipe: '.$recipe->name.' ('.$recipe->size.')',
                 'url' => '/api/recipe/'.$recipe->id,
                 'price' => $price,
             ]);
-     }
-     public function preview(Request $request)
+    }
+
+    public function preview(Request $request)
     {
         $items = $request->input('items');
         $ingredientIds = array_map(function ($item) {
@@ -87,4 +77,5 @@ class RecipeController extends Controller
                 'price' => $this->calculatePrice($ingredients, $size),
             ]);
     }
+
 }

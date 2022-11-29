@@ -23,6 +23,6 @@ Route::get('/', function () {
 
 
 Route::get('/ingredients', [IngredientController::class,'index']);
-Route::post('/recipes', 'RecipeController@save');
-Route::get('/recipe/{id}', 'RecipeController@fetch'); 
+Route::post('/recipes',[RecipeController::class,'save']);
+Route::get('/recipe/{id}',[RecipeController::class,'fetch']);
 Route::post('/recipes/preview', [RecipeController::class, 'preview']);
